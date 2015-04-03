@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="/bower_components/angular-material/angular-material.css">
+</head>
+    <body ng-app="IntranetSearch">
+
+    <div ng-controller="SearchCtrl as ctrl">
+        
+        <br>
+        <md-content class="md-padding" layout="column">    
+          <md-input-container>
+            <label>Search</label>
+            <input md-maxlength="50" required name="description" ng-model="searchText" ng-change="search()">
+          </md-input-container>
+
+          <md-list>
+          <md-subheader class="md-no-sticky">Results</md-subheader>
+              <md-item class="md-3-line" ng-repeat="item in results">
+                
+                  <div class="md-item-text">                
+                  <h4>{{ item._source.title }} </h6>
+                  <a ng-href="{{ item._source.url }}"> {{ item._source.url }}</a>
+                  <p style="font-size: 0.7em">{{ item._source.content | limitTo:400 }}</p>
+                </div>
+                <hr/>
+              </md-item>
+              
+          </md-list>
+       
+        </md-content>
+    </div>
+
+    <script src="/bower_components/angular/angular.js"></script>
+    <script src="/bower_components/angular-aria/angular-aria.js"></script>
+    <script src="/bower_components/angular-animate/angular-animate.js"></script>
+    <script src="/bower_components/angular-material/angular-material.js"></script>
+    <script src="/bower_components/elasticsearch/elasticsearch.angular.js"></script>
+    <script>
+
+        // Include app dependency on ngMaterial
+
+        // var elasticsearch = require('elasticsearch');
+        // var client = new elasticsearch.Client({
+        //   host: 'localhost:9200',
+        //   log: 'trace'
+        // });
+
+        angular.module( 'IntranetSearch', [ 'ngMaterial','elasticsearch' ] )
+        .controller("SearchCtrl", function ($scope ,client){
+
+            $scope.results = []
+            $scope.searchText= ""
+            $scope.search = function (){
+
+                    client.search({
+                      q: $scope.searchText
+                    }).then(function (body) {
+                      var hits = body.hits.hits;
+                      console.log(hits);
+                      $scope.results = hits;
+                    }, function (error) {
+                      console.trace(error.message);
+                    });
+            }
+
+        })
+        .service('client', function (esFactory) {
+                  return esFactory({
+                    host: 'localhost:9200'
+                    // ...
+                });
+        });
+
+    </script>
+
+</body>
+</html>
